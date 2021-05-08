@@ -32,4 +32,12 @@ public final class PositiveInteger {
 		return this.underlyingVal.hashCode();
 	}
 
+	public static PositiveInteger sum(PositiveInteger a, PositiveInteger b) {
+		return PositiveInteger.of(a.value() + b.value());
+	}
+
+	public static PositiveInteger difference(PositiveInteger a, PositiveInteger b) {
+		return PositiveInteger.of(a.value() - b.value());
+	}
+
 }
