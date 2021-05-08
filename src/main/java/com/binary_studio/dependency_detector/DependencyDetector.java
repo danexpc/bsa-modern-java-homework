@@ -24,8 +24,7 @@ public final class DependencyDetector {
 	}
 
 	private static LinkedList<String> computeChildren(String lib, List<String[]> dependencies) {
-		return dependencies.stream().filter(dependency -> lib.equals(dependency[0]))
-				.map(dependency -> dependency[1])
+		return dependencies.stream().filter(dependency -> lib.equals(dependency[0])).map(dependency -> dependency[1])
 				.collect(Collectors.toCollection(LinkedList::new));
 	}
 
@@ -34,7 +33,7 @@ public final class DependencyDetector {
 		List<String> visited = new ArrayList<>(libraries.size());
 		List<String> recursionStack = new ArrayList<>(libraries.size());
 
-		for (String lib: libraries) {
+		for (String lib : libraries) {
 			if (isCyclicUtil(lib, visited, recursionStack)) {
 				return true;
 			}
@@ -57,7 +56,7 @@ public final class DependencyDetector {
 
 		List<String> children = adj.get(lib);
 
-		for (String childLib: children) {
+		for (String childLib : children) {
 			if (isCyclicUtil(childLib, visited, recursionStack)) {
 				return true;
 			}
@@ -67,6 +66,5 @@ public final class DependencyDetector {
 
 		return false;
 	}
-
 
 }
