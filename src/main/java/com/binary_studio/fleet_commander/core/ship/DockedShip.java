@@ -61,11 +61,12 @@ public final class DockedShip implements ModularVessel {
 		}
 		else if (this.powergridOutput.value() < subsystem.getPowerGridConsumption().value()) {
 			throw new InsufficientPowergridException(
-					subsystem.getPowerGridConsumption().value() - this.powergridOutput.value());
+					PositiveInteger.difference(subsystem.getPowerGridConsumption(), this.powergridOutput).value());
 		}
 		else {
 			this.attackSubsystem = subsystem;
-			subtractPowergridOutput(subsystem.getPowerGridConsumption());
+			this.powergridOutput = PositiveInteger.difference(this.powergridOutput,
+					subsystem.getPowerGridConsumption());
 		}
 	}
 
@@ -78,28 +79,25 @@ public final class DockedShip implements ModularVessel {
 		}
 		else if (this.powergridOutput.value() < subsystem.getPowerGridConsumption().value()) {
 			throw new InsufficientPowergridException(
-					subsystem.getPowerGridConsumption().value() - this.powergridOutput.value());
+					PositiveInteger.difference(subsystem.getPowerGridConsumption(), this.powergridOutput).value());
 		}
 		else {
 			this.defenciveSubsystem = subsystem;
-			subtractPowergridOutput(subsystem.getPowerGridConsumption());
+			this.powergridOutput = PositiveInteger.difference(this.powergridOutput,
+					subsystem.getPowerGridConsumption());
 		}
 	}
 
 	private void unfitDefensiveSubsystem() {
-		this.powergridOutput = PositiveInteger
-				.of(this.powergridOutput.value() + this.defenciveSubsystem.getPowerGridConsumption().value());
+		this.powergridOutput = PositiveInteger.sum(this.powergridOutput,
+				this.defenciveSubsystem.getPowerGridConsumption());
 		this.defenciveSubsystem = null;
 	}
 
 	private void unfitAttackSubsystem() {
-		this.powergridOutput = PositiveInteger
-				.of(this.powergridOutput.value() + this.attackSubsystem.getPowerGridConsumption().value());
+		this.powergridOutput = PositiveInteger.sum(this.powergridOutput,
+				this.attackSubsystem.getPowerGridConsumption());
 		this.attackSubsystem = null;
-	}
-
-	private void subtractPowergridOutput(PositiveInteger diff) {
-		this.powergridOutput = PositiveInteger.of(this.powergridOutput.value() - diff.value());
 	}
 
 	public CombatReadyShip undock() throws NotAllSubsystemsFitted {

@@ -13,11 +13,11 @@ import com.binary_studio.fleet_commander.core.subsystems.contract.DefenciveSubsy
 
 public final class CombatReadyShip implements CombatReadyVessel {
 
-	private final PositiveInteger MAX_SHIELD_HP;
+	private final PositiveInteger maxShieldHP;
 
-	private final PositiveInteger MAX_HULL_HP;
+	private final PositiveInteger maxHullHP;
 
-	private final PositiveInteger MAX_CAPACITOR_AMOUNT;
+	private final PositiveInteger maxCapacitorAmount;
 
 	private final String name;
 
@@ -42,11 +42,11 @@ public final class CombatReadyShip implements CombatReadyVessel {
 			PositiveInteger size, AttackSubsystem attackSubsystem, DefenciveSubsystem defenciveSubsystem) {
 		this.name = name;
 		this.shieldHP = shieldHP;
-		this.MAX_SHIELD_HP = shieldHP;
+		this.maxShieldHP = shieldHP;
 		this.hullHP = hullHP;
-		this.MAX_HULL_HP = hullHP;
+		this.maxHullHP = hullHP;
 		this.capacitorAmount = capacitorAmount;
-		this.MAX_CAPACITOR_AMOUNT = capacitorAmount;
+		this.maxCapacitorAmount = capacitorAmount;
 		this.capacitorRechargeRate = capacitorRechargeRate;
 		this.speed = speed;
 		this.size = size;
@@ -57,8 +57,8 @@ public final class CombatReadyShip implements CombatReadyVessel {
 	@Override
 	public void endTurn() {
 		this.capacitorAmount = PositiveInteger.of(
-				(this.capacitorAmount.value() + this.capacitorRechargeRate.value()) > this.MAX_CAPACITOR_AMOUNT.value()
-						? this.MAX_CAPACITOR_AMOUNT.value()
+				(this.capacitorAmount.value() + this.capacitorRechargeRate.value()) > this.maxCapacitorAmount.value()
+						? this.maxCapacitorAmount.value()
 						: (this.capacitorAmount.value() + this.capacitorRechargeRate.value()));
 	}
 
@@ -88,8 +88,8 @@ public final class CombatReadyShip implements CombatReadyVessel {
 			return Optional.empty();
 		}
 
-		this.capacitorAmount = PositiveInteger
-				.of(this.capacitorAmount.value() - this.attackSubsystem.getCapacitorConsumption().value());
+		this.capacitorAmount = PositiveInteger.difference(this.capacitorAmount,
+				this.attackSubsystem.getCapacitorConsumption());
 		AttackAction attackAction = new AttackAction(this.attackSubsystem.attack(target), this, target,
 				this.attackSubsystem);
 		return Optional.of(attackAction);
@@ -100,11 +100,11 @@ public final class CombatReadyShip implements CombatReadyVessel {
 		attack = this.defenciveSubsystem.reduceDamage(attack);
 
 		if (this.shieldHP.value() > attack.damage.value()) {
-			this.shieldHP = PositiveInteger.of(this.shieldHP.value() - attack.damage.value());
+			this.shieldHP = PositiveInteger.difference(this.shieldHP, attack.damage);
 			return new AttackResult.DamageRecived(attack.weapon, attack.damage, this);
 		}
 		else if ((this.shieldHP.value() + this.hullHP.value()) > attack.damage.value()) {
-			this.hullHP = PositiveInteger.of(attack.damage.value() - this.shieldHP.value());
+			this.hullHP = PositiveInteger.difference(attack.damage, this.shieldHP);
 			this.shieldHP = PositiveInteger.of(0);
 			return new AttackResult.DamageRecived(attack.weapon, attack.damage, this);
 		}
@@ -118,9 +118,9 @@ public final class CombatReadyShip implements CombatReadyVessel {
 			return Optional.empty();
 		}
 
-		this.capacitorAmount = PositiveInteger
-				.of(this.capacitorAmount.value() - this.defenciveSubsystem.getCapacitorConsumption().value());
-		RegenerateAction regenerateAction = defenciveSubsystem.regenerate();
+		this.capacitorAmount = PositiveInteger.difference(this.capacitorAmount,
+				this.defenciveSubsystem.getCapacitorConsumption());
+		RegenerateAction regenerateAction = this.defenciveSubsystem.regenerate();
 
 		regenerateAction = computeRegeneration(regenerateAction);
 
@@ -128,31 +128,28 @@ public final class CombatReadyShip implements CombatReadyVessel {
 	}
 
 	private RegenerateAction computeRegeneration(RegenerateAction regenerateAction) {
-		int possibleRegeneratedHullHP = this.MAX_HULL_HP.value() - this.hullHP.value();
-		int possibleRegeneratedShieldHP = this.MAX_SHIELD_HP.value() - this.shieldHP.value();
+		PositiveInteger possibleRegeneratedHullHP = PositiveInteger.difference(this.maxHullHP, this.hullHP);
+		PositiveInteger possibleRegeneratedShieldHP = PositiveInteger.difference(this.maxShieldHP, this.shieldHP);
 
-		if (regenerateAction.hullHPRegenerated.value() > possibleRegeneratedHullHP
-				&& regenerateAction.shieldHPRegenerated.value() > possibleRegeneratedShieldHP) {
-			regenerateAction = new RegenerateAction(PositiveInteger.of(possibleRegeneratedShieldHP),
-					PositiveInteger.of(possibleRegeneratedHullHP));
-			this.hullHP = this.MAX_HULL_HP;
-			this.shieldHP = this.MAX_SHIELD_HP;
+		if (regenerateAction.hullHPRegenerated.value() > possibleRegeneratedHullHP.value()
+				&& regenerateAction.shieldHPRegenerated.value() > possibleRegeneratedShieldHP.value()) {
+			regenerateAction = new RegenerateAction(possibleRegeneratedShieldHP, possibleRegeneratedHullHP);
+			this.hullHP = this.maxHullHP;
+			this.shieldHP = this.maxShieldHP;
 		}
-		else if (regenerateAction.shieldHPRegenerated.value() > possibleRegeneratedShieldHP) {
-			this.shieldHP = this.MAX_SHIELD_HP;
-			this.hullHP = PositiveInteger.of(this.hullHP.value() + regenerateAction.hullHPRegenerated.value());
-			regenerateAction = new RegenerateAction(PositiveInteger.of(possibleRegeneratedShieldHP),
-					regenerateAction.hullHPRegenerated);
+		else if (regenerateAction.shieldHPRegenerated.value() > possibleRegeneratedShieldHP.value()) {
+			this.shieldHP = this.maxShieldHP;
+			this.hullHP = PositiveInteger.sum(this.hullHP, regenerateAction.hullHPRegenerated);
+			regenerateAction = new RegenerateAction(possibleRegeneratedShieldHP, regenerateAction.hullHPRegenerated);
 		}
-		else if (regenerateAction.hullHPRegenerated.value() > possibleRegeneratedHullHP) {
-			this.hullHP = this.MAX_HULL_HP;
-			this.shieldHP = PositiveInteger.of(shieldHP.value() + regenerateAction.shieldHPRegenerated.value());
-			regenerateAction = new RegenerateAction(regenerateAction.shieldHPRegenerated,
-					PositiveInteger.of(possibleRegeneratedHullHP));
+		else if (regenerateAction.hullHPRegenerated.value() > possibleRegeneratedHullHP.value()) {
+			this.hullHP = this.maxHullHP;
+			this.shieldHP = PositiveInteger.sum(this.shieldHP, regenerateAction.shieldHPRegenerated);
+			regenerateAction = new RegenerateAction(regenerateAction.shieldHPRegenerated, possibleRegeneratedHullHP);
 		}
 		else {
-			this.hullHP = PositiveInteger.of(this.hullHP.value() + regenerateAction.hullHPRegenerated.value());
-			this.shieldHP = PositiveInteger.of(this.shieldHP.value() + regenerateAction.shieldHPRegenerated.value());
+			this.hullHP = PositiveInteger.sum(this.hullHP, regenerateAction.hullHPRegenerated);
+			this.shieldHP = PositiveInteger.sum(this.shieldHP, regenerateAction.shieldHPRegenerated);
 		}
 
 		return regenerateAction;
