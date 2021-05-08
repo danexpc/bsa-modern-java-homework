@@ -10,16 +10,20 @@ public final class DefenciveSubsystemImpl implements DefenciveSubsystem {
 	private final static Integer MAX_REDUCTION_PERCENT = 95;
 
 	private final String name;
+
 	private final PositiveInteger powergridConsumption;
+
 	private final PositiveInteger capacitorConsumption;
+
 	private final PositiveInteger impactReductionPercent;
+
 	private final PositiveInteger shieldRegeneration;
+
 	private final PositiveInteger hullRegeneration;
 
-
 	private DefenciveSubsystemImpl(String name, PositiveInteger powergridConsumption,
-								   PositiveInteger capacitorConsumption, PositiveInteger impactReductionPercent,
-								   PositiveInteger shieldRegeneration, PositiveInteger hullRegeneration) {
+			PositiveInteger capacitorConsumption, PositiveInteger impactReductionPercent,
+			PositiveInteger shieldRegeneration, PositiveInteger hullRegeneration) {
 		this.name = name;
 		this.powergridConsumption = powergridConsumption;
 		this.capacitorConsumption = capacitorConsumption;
@@ -36,8 +40,8 @@ public final class DefenciveSubsystemImpl implements DefenciveSubsystem {
 			throw new IllegalArgumentException("Name should be not null and not empty");
 		}
 
-		impactReductionPercent = PositiveInteger.of(
-				impactReductionPercent.value() > MAX_REDUCTION_PERCENT ? MAX_REDUCTION_PERCENT : impactReductionPercent.value());
+		impactReductionPercent = PositiveInteger.of(impactReductionPercent.value() > MAX_REDUCTION_PERCENT
+				? MAX_REDUCTION_PERCENT : impactReductionPercent.value());
 
 		return new DefenciveSubsystemImpl(name, powergridConsumption, capacitorConsumption, impactReductionPercent,
 				shieldRegeneration, hullRegeneration);
@@ -45,7 +49,7 @@ public final class DefenciveSubsystemImpl implements DefenciveSubsystem {
 
 	@Override
 	public PositiveInteger getPowerGridConsumption() {
-		return powergridConsumption;
+		return this.powergridConsumption;
 	}
 
 	@Override
@@ -60,18 +64,18 @@ public final class DefenciveSubsystemImpl implements DefenciveSubsystem {
 
 	@Override
 	public AttackAction reduceDamage(AttackAction incomingDamage) {
-		return new AttackAction(computeReducedDamage(incomingDamage.damage),
-				incomingDamage.attacker, incomingDamage.target, incomingDamage.weapon);
+		return new AttackAction(computeReducedDamage(incomingDamage.damage), incomingDamage.attacker,
+				incomingDamage.target, incomingDamage.weapon);
 	}
 
 	@Override
 	public RegenerateAction regenerate() {
-		return new RegenerateAction(shieldRegeneration, hullRegeneration);
+		return new RegenerateAction(this.shieldRegeneration, this.hullRegeneration);
 	}
 
 	private PositiveInteger computeReducedDamage(PositiveInteger incomingDamage) {
-		return PositiveInteger.of((int) Math.ceil(incomingDamage.value() *
-				(1 - ((double) impactReductionPercent.value() / 100))));
+		return PositiveInteger.of(
+				(int) Math.ceil(incomingDamage.value() * (1 - ((double) this.impactReductionPercent.value() / 100))));
 	}
 
 }

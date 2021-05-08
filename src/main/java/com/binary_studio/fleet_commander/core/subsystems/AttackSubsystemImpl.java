@@ -9,14 +9,20 @@ import static java.lang.Math.min;
 public final class AttackSubsystemImpl implements AttackSubsystem {
 
 	private final String name;
+
 	private final PositiveInteger powergridRequirements;
+
 	private final PositiveInteger capacitorConsumption;
+
 	private final PositiveInteger optimalSpeed;
+
 	private final PositiveInteger optimalSize;
+
 	private final PositiveInteger baseDamage;
 
-	private AttackSubsystemImpl(String name, PositiveInteger powergridRequirements, PositiveInteger capacitorConsumption,
-								PositiveInteger optimalSpeed, PositiveInteger optimalSize, PositiveInteger baseDamage) {
+	private AttackSubsystemImpl(String name, PositiveInteger powergridRequirements,
+			PositiveInteger capacitorConsumption, PositiveInteger optimalSpeed, PositiveInteger optimalSize,
+			PositiveInteger baseDamage) {
 		this.name = name;
 		this.powergridRequirements = powergridRequirements;
 		this.capacitorConsumption = capacitorConsumption;
@@ -32,8 +38,8 @@ public final class AttackSubsystemImpl implements AttackSubsystem {
 			throw new IllegalArgumentException("Name should be not null and not empty");
 		}
 
-		return new AttackSubsystemImpl(name, powergridRequirements, capacitorConsumption, optimalSpeed,
-				optimalSize, baseDamage);
+		return new AttackSubsystemImpl(name, powergridRequirements, capacitorConsumption, optimalSpeed, optimalSize,
+				baseDamage);
 	}
 
 	@Override
@@ -48,14 +54,14 @@ public final class AttackSubsystemImpl implements AttackSubsystem {
 
 	@Override
 	public PositiveInteger attack(Attackable target) {
-		double sizeReductionModifier = target.getSize().value() >= optimalSize.value() ? 1
-				: (double)target.getSize().value() / this.optimalSize.value();
+		double sizeReductionModifier = target.getSize().value() >= this.optimalSize.value() ? 1
+				: (double) target.getSize().value() / this.optimalSize.value();
 
-		double speedReductionModifier = target.getCurrentSpeed().value() <= optimalSpeed.value() ? 1
-				: (double) optimalSpeed.value() / (2 * target.getCurrentSpeed().value());
+		double speedReductionModifier = target.getCurrentSpeed().value() <= this.optimalSpeed.value() ? 1
+				: (double) this.optimalSpeed.value() / (2 * target.getCurrentSpeed().value());
 
-		return PositiveInteger.of((int) Math.ceil(baseDamage.value() *
-				min(sizeReductionModifier, speedReductionModifier)));
+		return PositiveInteger
+				.of((int) Math.ceil(this.baseDamage.value() * min(sizeReductionModifier, speedReductionModifier)));
 	}
 
 	@Override
