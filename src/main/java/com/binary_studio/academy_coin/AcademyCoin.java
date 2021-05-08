@@ -15,12 +15,12 @@ public final class AcademyCoin {
 		Integer[] pricesArray = prices.collect(Collectors.toList()).toArray(Integer[]::new);
 
 		int j = 0;
-		for(int i = 1; i < pricesArray.length; i++){
+		for (int i = 1; i < pricesArray.length; i++) {
 			if (pricesArray[i - 1] > pricesArray[i]) {
 				j = i;
 			}
-			if (pricesArray[i - 1] <= pricesArray[i] &&
-					(i + 1 == pricesArray.length || pricesArray[i] > pricesArray[i+1])) {
+			if (pricesArray[i - 1] <= pricesArray[i]
+					&& (i + 1 == pricesArray.length || pricesArray[i] > pricesArray[i + 1])) {
 				profit += pricesArray[i] - pricesArray[j];
 			}
 		}
