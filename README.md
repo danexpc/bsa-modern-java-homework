@@ -1,4 +1,4 @@
-# bsa-modern-java-homework
+# BSA Modern Java Homework
 
 Java homework focuses on testing basic language skills, knowledge of algorithms and understanding of the object-oriented paradigm.
 
